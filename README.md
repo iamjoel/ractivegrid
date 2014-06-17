@@ -47,7 +47,7 @@ var userData = {
 	]
 };
 
-var userGrid = new ractivegrid({
+var userGrid = new Ractivegrid({
 	data : userData,
 	columns: columns,// 列名
 	el : '#output',
