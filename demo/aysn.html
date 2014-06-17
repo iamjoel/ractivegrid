@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>异步数据 demo</title>
+</head>
+
+<body>
+    <div id="output">
+
+    </div>
+    <script src="../vendor/jquery-1.10.2.js"></script>
+    <script src="../vendor/underscore-min.js"></script>
+    <script src="../vendor/ractive.js"></script>
+    <script src="../src/ractivegrid.js"></script>
+    <script>
+    $(document).ready(function() {
+        var columns = [{
+            name: 'name', // 数据中的值
+            label: '姓名', // 列名
+            editable: true
+        }, {
+            name: 'sex',
+            label: '性别',
+            fromRaw: function(cellData, rawData) {
+                if (parseInt(cellData) === 1) {
+                    return '男';
+                } else {
+                    return '女';
+                }
+
+            }
+        }];
+        var userGrid = new Ractivegrid({
+            url: 'data/user.json',
+            columns: columns, // 列名
+            el: '#output',
+            format: function(data) {
+                if (data.success === 1) {
+                    return data.data;
+                } else {
+                    return [];
+                }
+            }
+        });
+
+    });
+    </script>
+</body>
+
+</html>
