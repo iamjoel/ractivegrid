@@ -56,6 +56,7 @@
         });
 
         if(isAysn){
+        	this.dfd = $.Deferred();
         	this.fetch();
         }
 
@@ -81,9 +82,24 @@
             	return;
             }
             self.grid.set('data', data);
+            self.dfd.resolve();
         }).fail(function(error){
+            self.dfd.reject();
         	console.error('error happed: %s', error);
         });
+    };
+
+	Ractivegrid.prototype.getData = function(){
+		return this.grid.get('data');
+    };
+
+    Ractivegrid.prototype.setData = function(data){
+		this.grid.set('data', data);
+    };
+
+    Ractivegrid.prototype.appendData = function(appendData){
+    	var data = this.getData('data');
+    	data.push(appendData);
     };
 
     function validParam(param) {
