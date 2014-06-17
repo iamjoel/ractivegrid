@@ -55,11 +55,11 @@
             }
         });
 
+        if(isAysn){
+        	this.fetch();
+        }
 
-    };
 
-    Ractivegrid.prototype.render = function() {
-        this.grid.update();
     };
 
     Ractivegrid.prototype.fetch = function() {

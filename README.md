@@ -21,14 +21,6 @@ var columns = [
 				return '女';
 			}
 
-		},
-		toRaw: function(cellData, rowData){
-			if(data.sex === 1){
-				return '男';
-			} else {
-				return '女';
-			}
-
 		}
 	}
 ];
@@ -60,7 +52,6 @@ var userGrid = new Ractivegrid({
 	}
 });
 
-userGrid.render();
 
 var ajaxUserGrid = new ractivegrid({
 	url : '/user/',
@@ -68,8 +59,5 @@ var ajaxUserGrid = new ractivegrid({
 	el : '#output',
 	updateUrl : function(rowData){}//更新某一列
 });
-
-ajaxUserGrid.fetch();// 向服务器端取数据
-ajaxUserGrid.render();
 
 ```
