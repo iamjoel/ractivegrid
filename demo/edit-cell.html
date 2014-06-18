@@ -3,15 +3,14 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>修改数据 demo</title>
+    <title>编辑单元格 demo</title>
 </head>
 
 <body>
+    <p>必须要一个提交到后台的地址。因为对于对于编辑单元格后，数据不能提交到后台的，没啥意义吧</p>
     <div id="output">
 
     </div>
-    <button id="addData">新增用户</button>
-    <button id="resetData">重置用户数据</button>
     <script src="../vendor/jquery-1.10.2.js"></script>
     <script src="../vendor/underscore-min.js"></script>
     <script src="../vendor/ractive.js"></script>
@@ -20,15 +19,25 @@
     $(document).ready(function() {
         var columns = [{
             name: 'name', // 数据中的值
-            label: '姓名' // 列名
+            label: '姓名', // 列名
+            editable: true
         }, {
             name: 'sex',
             label: '性别',
+            editable: true,
             fromRaw: function(cellData, rawData) {
                 if (parseInt(cellData) === 1) {
                     return '男';
                 } else {
                     return '女';
+                }
+
+            },
+            toRaw: function(cellData, rawData) {
+                if (cellData === '男') {
+                    return 1;
+                } else {
+                    return 0;
                 }
 
             }
@@ -45,29 +54,6 @@
                 }
             }
         });
-        var dfd = userGrid.dfd;
-        dfd.done(function() {
-            var oriData = _.clone(userGrid.getData());
-            $('#addData').click(function() {
-                userGrid.appendData(makeUserData());
-
-            });
-
-            $('#resetData').click(function() {
-                userGrid.setData(oriData);
-                oriData = _.clone(oriData);
-
-            });
-        });
-
-        function makeUserData() {
-            return {
-                name: 'lufe',
-                sex: 1
-            }
-        }
-
-
 
     });
     </script>

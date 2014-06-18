@@ -9,18 +9,21 @@
 		'<tbody>'
 		+ '{{#data:i}}'
 			+ '<tr>'
-			+ '{{#columns}}'
-					+ '{{# isFunction(fromRaw) }}'
-		    			+ '<td>{{fromRaw(data[i][name], data[i])}}</td>'
-		    		+ '{{/isFunction}}'
-		    		+ '{{^isFunction(fromRaw) }}'
-		    			+ '<td>{{data[i][name]}}</td>'
-		    		+ '{{/isFunction}}'
+			+ '{{#columns:j}}'
+                + '<td on-dblclick="edit" data-row-index="{{i}}"  data-col-index="{{j}}">'
+                +  '{{# data[i][j].isEdit}}'
+                    + '<input on-blur="blur" value="{{getCellContent(data, columns, i, j, fromRaw, toRaw)}}"/>'
+                +  '{{/ data[i][j].isEdit}}'
+                +  '{{^ data[i][j].isEdit}}'
+                    + '{{{getCellContent(data, columns, i, j, fromRaw, toRaw)}}}'
+                +  '{{/ data[i][j].isEdit}}'
+
+                + '</td>'
 			+ '{{/columns}}'
     		+ '</tr>'
 		+ '{{/data}}'
-		+ '</tbody>'
-    var template = 
+		+ '</tbody>';
+    var template =
     	'<table>'
 	    	+ headTemplate
 	    	+ bodyTemplate
@@ -49,10 +52,44 @@
             data: {
             	data : renderData,
             	columns : param.columns,
-            	isFunction :function(fun){
-            		return _.isFunction(fun);
-            	}
+                getCellContent: function(data, columns, rowIndex, colIndex, fromRaw, toRaw){
+                    var cellData = data[rowIndex][columns[colIndex].name];
+                    var rowData = data[rowIndex];
+                    var isEdit = (rowData && rowData[colIndex]) ?  rowData[colIndex].isEdit : false;
+
+                    if(_.isFunction(fromRaw)){
+                        cellData = fromRaw(cellData,rowData);
+                    }
+                    return cellData;
+                },
+
             }
+        });
+
+        this.grid.on('edit', function(event){
+            var canEdit = this.get(event.keypath + '.editable');
+            if(!canEdit){
+                return;
+            }
+            var $td = $(event.node).closest('td');
+            var rowIndex =  $td.data('row-index');
+            var colIndex =  $td.data('col-index');
+            this.set('data.' + rowIndex + '.' + colIndex + '.isEdit', true);
+        });
+
+        this.grid.on('blur', function(event){
+            var $input = $(event.node);
+            var $td = $input.closest('td');
+            var rowIndex =  $td.data('row-index');
+            var colIndex =  $td.data('col-index');
+            var columnName = this.get(event.keypath + '.name');
+            var inputData = $input.val();
+            var toRaw = this.get(event.keypath + '.toRaw');
+            this.set('data.' + rowIndex + '.' + colIndex + '.isEdit', false);
+            if(_.isFunction(toRaw)){
+                inputData = toRaw(inputData);
+            }
+            this.set('data.' + rowIndex + '.' + columnName, inputData);
         });
 
         if(isAysn){
