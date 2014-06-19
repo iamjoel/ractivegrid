@@ -94,6 +94,10 @@
                 inputData = toRaw(inputData);
             }
             this.set('data.' + rowIndex + '.' + columnName, inputData);
+            var rowData = this.get('data.' + rowIndex);
+            if(_.isFunction(param.onContentChange)){
+                param.onContentChange(rowData, this.get('data'));
+            }
         });
 
         if(isAysn){

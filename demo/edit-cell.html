@@ -8,7 +8,7 @@
 </head>
 
 <body>
-    <p>必须要一个提交到后台的地址。因为对于对于编辑单元格后，数据不能提交到后台的，没啥意义吧</p>
+    <p>双击单元格进行编辑</p>
     <div id="output">
 
     </div>
@@ -53,6 +53,11 @@
                 } else {
                     return [];
                 }
+            },
+            onContentChange : function(rowData){
+                // 做一些提交操作
+                console.log(rowData);
+
             }
         });
 
