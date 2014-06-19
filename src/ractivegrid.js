@@ -10,7 +10,7 @@
 		+ '{{#data:i}}'
 			+ '<tr>'
 			+ '{{#columns:j}}'
-                + '<td on-dblclick="edit" data-row-index="{{i}}"  data-col-index="{{j}}">'
+                + '<td class="{{getClass(data[i][j].isEdit)}}" on-dblclick="edit" data-row-index="{{i}}"  data-col-index="{{j}}">'
                 +  '{{# data[i][j].isEdit}}'
                     + '<input on-blur="blur" value="{{getCellContent(data, columns, i, j, fromRaw, toRaw)}}"/>'
                 +  '{{/ data[i][j].isEdit}}'
@@ -24,7 +24,7 @@
 		+ '{{/data}}'
 		+ '</tbody>';
     var template =
-    	'<table>'
+    	'<table class="ractivegrid table-striped table-bordered table-hover">'
 	    	+ headTemplate
 	    	+ bodyTemplate
 		+ '</table>';
@@ -62,6 +62,9 @@
                     }
                     return cellData;
                 },
+                getClass : function(isEdit){
+                    return isEdit ? 'editing' : '';
+                }
 
             }
         });
