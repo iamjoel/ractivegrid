@@ -1,4 +1,4 @@
-(function(Ractive, $) {
+(function(Ractive, $, _) {
 	var headTemplate = 
 		'<thead><tr>'
 	    	+ '{{#columns}}'
@@ -38,14 +38,17 @@
         }
         var isAysn = _.isUndefined(param.url) !== true;
 
-        var renderData = isAysn ? [] : param.data;
-        if(!_.isUndefined(param.format) && _.isFunction(param.format)){
-        	renderData = param.format(renderData);
+        var startIndex = 0;
+        var endIndex = Infinity;
+
+        var paging = null;
+        if(!_.isUndefined(param.paging) && param.paging.isPaging){
+            paging = param.paging;
+            endIndex = paging.getPageLimit();
         }
-        if(!_.isArray(renderData)){
-            console.error('data should be array!');
-            return;
-        }
+
+        var renderData = isAysn ? [] : this.getRendData(param.data, startIndex, endIndex);
+
         this.grid = new Ractive({
             el: param.el,
             template: template,
@@ -100,15 +103,37 @@
             }
         });
 
+        if(paging){
+            paging.addListener('onPageChange', function(pageAt){
+                self.fetch(pageAt);
+            });
+        }
+
         if(isAysn){
         	this.dfd = $.Deferred();
-        	this.fetch();
+        	this.fetch(1);  // 向服务器取数据
         }
 
 
     };
 
-    Ractivegrid.prototype.fetch = function() {
+    /*
+    * 包含 startIndx，不包含endIndex
+    */
+    Ractivegrid.prototype.getRendData = function(data, startIndex, endIndex){
+        var renderData = isAysn ? [] : param.data;
+        if(!_.isUndefined(param.format) && _.isFunction(param.format)){
+            renderData = param.format(renderData);
+        }
+        if(!_.isArray(renderData)){
+            console.error('data should be array!');
+            return;
+        }
+
+        return renderData.slice(startIndex, endIndex);
+    }
+
+    Ractivegrid.prototype.fetch = function(pageAt) {
         var param = this.param;
         var url = param.url;
         var self = this;
@@ -116,8 +141,12 @@
             console.warn('fetch not work for lacking url!');
             return false;
         }
+        if(_.isFunction(url)){
+            url = url(pageAt);
+        }
+
         $.ajax({
-            url: param.url
+            url: url
         }).done(function(data) {
             if(!_.isUndefined(param.format) && _.isFunction(param.format)){
             	data = param.format(data);
@@ -162,5 +191,6 @@
         }
         return true;
     };
+
     window.Ractivegrid = Ractivegrid;
 })(Ractive, jQuery, _);
