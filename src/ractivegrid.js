@@ -78,6 +78,7 @@
             var rowIndex =  $td.data('row-index');
             var colIndex =  $td.data('col-index');
             this.set('data.' + rowIndex + '.' + colIndex + '.isEdit', true);
+            $td.find(':text').focus();
         });
 
         this.grid.on('blur', function(event){
