@@ -47,7 +47,7 @@
             endIndex = paging.getPageLimit();
         }
 
-        var renderData = isAysn ? [] : this.getRendData(param.data, startIndex, endIndex);
+        var renderData = isAysn ? [] : this.getRendData(param.data, startIndex, endIndex, param.format);
 
         this.grid = new Ractive({
             el: param.el,
@@ -120,10 +120,10 @@
     /*
     * 包含 startIndx，不包含endIndex
     */
-    Ractivegrid.prototype.getRendData = function(data, startIndex, endIndex){
-        var renderData = isAysn ? [] : param.data;
-        if(!_.isUndefined(param.format) && _.isFunction(param.format)){
-            renderData = param.format(renderData);
+    Ractivegrid.prototype.getRendData = function(data, startIndex, endIndex, format){
+        var renderData = data;
+        if(!_.isUndefined(format) && _.isFunction(format)){
+            renderData = format(renderData);
         }
         if(!_.isArray(renderData)){
             console.error('data should be array!');
@@ -148,9 +148,7 @@
         $.ajax({
             url: url
         }).done(function(data) {
-            if(!_.isUndefined(param.format) && _.isFunction(param.format)){
-            	data = param.format(data);
-            }
+            data = self.getRendData(data, 0, Infinity, param.format);
             if(!_.isArray(data)){
             	console.error('data should be array!');
             	return;
