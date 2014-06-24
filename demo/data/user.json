@@ -3,21 +3,39 @@
     "pageSize":5,
     "data": [{
         "name": "joel",
-        "sex": 1
+        "sex": 1,
+        "other": {
+            "age": 17
+        }
     }, {
         "name": "lili",
-        "sex": 0
+        "sex": 0,
+        "other": {
+            "age": 15
+        }
     }, {
         "name": "lisa",
-        "sex": 0
+        "sex": 0,
+        "other": {
+            "age": 15
+        }
     }, {
         "name": "maria",
-        "sex": 0
+        "sex": 0,
+        "other": {
+            "age": 15
+        }
     }, {
         "name": "amili",
-        "sex": 0
+        "sex": 0,
+        "other": {
+            "age": 15
+        }
     }, {
         "name": "apple",
-        "sex": 0
+        "sex": 0,
+        "other": {
+            "age": 15
+        }
     }]
 }

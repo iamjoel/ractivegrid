@@ -29,17 +29,25 @@
                 } else {
                     return '女';
                 }
-
             }
+        }, {
+            name: 'other.age',
+            label: '年龄'
         }];
         var userData = {
             success: 1,
             data: [{
                 name: 'joel',
-                sex: 1
+                sex: 1,
+                "other": {
+                    "age": 17
+                }
             }, {
                 name: 'lili',
-                sex: 0
+                sex: 0,
+                "other": {
+                    "age": 15
+                }
             }]
         };
         var userGrid = new Ractivegrid({

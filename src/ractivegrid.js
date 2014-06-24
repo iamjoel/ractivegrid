@@ -64,8 +64,13 @@
             	data : renderData,
             	columns : param.columns,
                 getCellContent: function(data, columns, rowIndex, colIndex, fromRaw, toRaw){
-                    var cellData = data[rowIndex][columns[colIndex].name];
                     var rowData = data[rowIndex];
+                    var cellData = rowData;
+                    var nameArr = columns[colIndex].name.split('.');
+                    _.forEach(nameArr, function(each){
+                        cellData = cellData[each];
+                    });
+
                     var isEdit = (rowData && rowData[colIndex]) ?  rowData[colIndex].isEdit : false;
 
                     if(_.isFunction(fromRaw)){
