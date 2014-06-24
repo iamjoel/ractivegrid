@@ -9,10 +9,17 @@
 </head>
 
 <body>
+    <h3>异步数据进行分页</h3>
     <div id="output">
 
     </div>
     <div id="paging" style="float:right;"></div>
+
+    <h3 style="clear:both;">本地数据进行分页</h3>
+    <div id="outputLocal">
+
+    </div>
+    <div id="paging2" style="float:right;"></div>
     <script src="../vendor/jquery-1.10.2.js"></script>
     <script src="../vendor/underscore-min.js"></script>
     <script src="../vendor/ractive.js"></script>
@@ -38,8 +45,7 @@
         }];
 
         var paging = new Ractivepaging({
-            el: '#paging',
-            pageNum: 2
+            el: '#paging'
         });
 
         var url = 'data/user.json?pageAt=';
@@ -56,7 +62,44 @@
                 } else {
                     return [];
                 }
+            },
+            success: function(data){
+                paging.setPageNum(data.pageSize);
             }
+        });
+
+
+        var paging2 = new Ractivepaging({
+            el: '#paging2',
+            pageLimit:3 // 一页3条
+        });
+
+        var userGridSync = new Ractivegrid({
+            data: [{
+                name: 'joel1',
+                sex: 1
+            }, {
+                name: 'joel2',
+                sex: 1
+            },{
+                name: 'joel3',
+                sex: 1
+            },{
+                name: 'joel4',
+                sex: 1
+            },{
+                name: 'lili5',
+                sex: 0
+            },{
+                name: 'lili6',
+                sex: 0
+            },{
+                name: 'lili7',
+                sex: 0
+            }],
+            columns: columns, // 列名
+            el: '#outputLocal',
+            paging: paging2
         });
 
     });
