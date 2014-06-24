@@ -10,7 +10,7 @@
 		+ '{{#data:i}}'
 			+ '<tr>'
 			+ '{{#columns:j}}'
-                + '<td class="{{getClass(data[i][j].isEdit)}}" on-dblclick="edit" data-row-index="{{i}}"  data-col-index="{{j}}">'
+                + '<td class="{{getClass(data,columns, i, j)}}" on-dblclick="edit" data-row-index="{{i}}"  data-col-index="{{j}}">'
                 +  '{{# data[i][j].isEdit}}'
                     + '<input on-blur="blur" value="{{getCellContent(data, columns, i, j, fromRaw, toRaw)}}"/>'
                 +  '{{/ data[i][j].isEdit}}'
@@ -78,10 +78,19 @@
                     }
                     return cellData;
                 },
-                getClass : function(isEdit){
-                    return isEdit ? 'editing' : '';
+                getClass : function(data, columns, rowIndex, colIndex){
+                    var classNameArr = [];
+                    if(data[rowIndex] && data[rowIndex][colIndex] && data[rowIndex][colIndex].isEdit){
+                        classNameArr.push('editing');
+                    }
+                    if(columns[colIndex].className){
+                        classNameArr.push(columns[colIndex].className);
+                    }
+                    return classNameArr.join(' ');
+                },
+                test : function(){
+                    return 'abc';
                 }
-
             }
         });
 

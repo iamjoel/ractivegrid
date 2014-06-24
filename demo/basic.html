@@ -19,7 +19,8 @@
     $(document).ready(function() {
         var columns = [{
             name: 'name', // 数据中的值
-            label: '姓名' // 列名
+            label: '姓名', // 列名
+            'className': 'name-class' // 元素上加类名
         }, {
             name: 'sex',
             label: '性别',
@@ -31,7 +32,7 @@
                 }
             }
         }, {
-            name: 'other.age',
+            name: 'other.age',// 层级 {other.age}
             label: '年龄'
         }];
         var userData = {
