@@ -1,5 +1,5 @@
 (function(Ractive, $, _) {
-	var headTemplate = 
+	var headTemplate =
 		'<thead><tr>'
 	    	+ '{{#columns}}'
 	    		+ '<th>{{label}}</th>'
@@ -48,6 +48,14 @@
         }
 
         var renderData = isAysn ? [] : this.getRendData(param.data, startIndex, endIndex, param.format);
+
+        if(paging && !isAysn){
+            var pageNum = parseInt(param.data.length / paging.getPageLimit(), 10) + 1;
+            if(param.data.length % paging.getPageLimit() === 0){
+                pageNum -= 1;
+            }
+            paging.setPageNum(pageNum);
+        }
 
         this.grid = new Ractive({
             el: param.el,
@@ -105,13 +113,25 @@
 
         if(paging){
             paging.addListener('onPageChange', function(pageAt){
-                self.fetch(pageAt);
+                if(isAysn){
+                    self.fetch(pageAt);
+                } else{
+                    var pageLimit = paging.getPageLimit();
+                    var start = (pageAt - 1) * pageLimit;
+                    var end = start + pageLimit;
+                    self.grid.set('data', self.getRendData(param.data, start, end, param.format))
+                }
             });
         }
 
         if(isAysn){
         	this.dfd = $.Deferred();
         	this.fetch(1);  // 向服务器取数据
+            this.dfd.done(function(data){
+                if(_.isFunction(param.success)){
+                    param.success(data);
+                }
+            })
         }
 
 
@@ -148,13 +168,13 @@
         $.ajax({
             url: url
         }).done(function(data) {
+            self.dfd.resolve(_.clone(data));
             data = self.getRendData(data, 0, Infinity, param.format);
             if(!_.isArray(data)){
             	console.error('data should be array!');
             	return;
             }
             self.grid.set('data', data);
-            self.dfd.resolve();
         }).fail(function(error){
             self.dfd.reject();
         	console.error('error happed: %s', error);

@@ -1,23 +1,26 @@
 (function(Ractive, $, _) {
 	var defaultParam = {
 		pageLimit : 10,
-		pageAt: 1
+		pageAt: 1,
+		pageNum: 0
 	};
 
 	var template =
-		'<ul class="ra-paging">'
-			+ '<li class="{{getPrevStatus(pageAt)}}">'
-				+ '<a on-click="prevPage" href="javascript:void(0);">上一页</a>'
-			+'</li>'
-		+ '{{#pageArray:i}}'
-			+ '<li class="{{getStatus(., pageAt)}}">'
-			+ '<a on-click="changePage" href="javascript:void(0);" data-index="{{.}}">{{.}}</a>'
-			+ '</li>'
-		+ '{{/pageArray}}'
-			+ '<li class="{{getNextStatus(pageAt, pageArray.length)}}">'
-				+ '<a on-click="nextPage" href="javascript:void(0);">下一页</a>'
-			+'</li>'
-		+ '</ul>';
+		'{{#pageNum >= 1}}' +
+			'<ul class="ra-paging">'
+				+ '<li class="{{getPrevStatus(pageAt)}}">'
+					+ '<a on-click="prevPage" href="javascript:void(0);">上一页</a>'
+				+'</li>'
+			+ '{{#pageArray:i}}'
+				+ '<li class="{{getStatus(., pageAt)}}">'
+				+ '<a on-click="changePage" href="javascript:void(0);" data-index="{{.}}">{{.}}</a>'
+				+ '</li>'
+			+ '{{/pageArray}}'
+				+ '<li class="{{getNextStatus(pageAt, pageArray.length)}}">'
+					+ '<a on-click="nextPage" href="javascript:void(0);">下一页</a>'
+				+'</li>'
+			+ '</ul>'
+		+ '{{/pageNum}}';
 	function Paging(param){
 		var self = this;
 		this.isPaging = true;
@@ -35,7 +38,6 @@
             template: template,
             data:{
             	pageAt: param.pageAt,
-            	pageArray: makePageArray(param.pageNum),
             	getStatus: function(index, pageAt){
             		return index === pageAt ? 'active' : '';
             	},
@@ -61,7 +63,7 @@
         });
 
         this.paging.on('nextPage', function(event){
-        	var pageAt = this.get('pageAt') + 1;
+        	var pageAt = this.get('pageAt');
         	if(pageAt <= param.pageNum){
         		changPage(pageAt);
         	}
@@ -76,8 +78,13 @@
 
 	}
 
+	Paging.prototype.setPageNum = function(pageNum){
+		this.paging.set('pageNum', pageNum);
+		this.paging.set('pageArray', makePageArray(pageNum));
+	};
+
 	Paging.prototype.getPageLimit = function(first_argument) {
-		return this.pageLimit;
+		return this.param.pageLimit;
 	};
 
 	Paging.prototype.addListener = function(type, callback){
@@ -100,9 +107,6 @@
 	function validParam(param) {
         if (!_.isObject(param)) {
             return 'param should be object';
-        }
-        if (!_.isNumber(param.pageNum)) {
-            return 'invalid pageNum';
         }
         if (_.isUndefined(param.el)) {
             return 'invalid el'
