@@ -10,4 +10,4 @@
 demo页[点这里](https://github.com/iamjoel/ractivegrid)
 
 ## 浏览器支持
-demo可以在ie9，Firefox，chrome上运行。待写测试用例。
+demo可以在ie9，Firefox，chrome上运行。测试用例写了一些些。
