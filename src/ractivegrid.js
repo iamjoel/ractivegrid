@@ -1,4 +1,15 @@
 (function(Ractive, $, _) {
+    // IE8/IE9要先按F12打开IE Dev Tools才能使用console，否则会报错
+    if(!window.console){
+        var emptyFn = function(){};
+        window.console = {
+            log: emptyFn,
+            error: emptyFn,
+            warn: emptyFn,
+            info: emptyFn
+        }
+
+    }
 	var headTemplate =
 		'<thead><tr>'
 	    	+ '{{#columns}}'
@@ -12,7 +23,7 @@
 			+ '{{#columns:j}}'
                 + '<td class="{{getClass(data,columns, i, j)}}" on-dblclick="edit" data-row-index="{{i}}"  data-col-index="{{j}}">'
                 +  '{{# data[i][j].isEdit}}'
-                    + '<input on-blur="blur" value="{{getCellContent(data, columns, i, j, fromRaw, toRaw)}}"/>'
+                    + '<input on-focus="focus" on-blur="blur" value="{{getCellContent(data, columns, i, j, fromRaw, toRaw)}}"/>'
                 +  '{{/ data[i][j].isEdit}}'
                 +  '{{^ data[i][j].isEdit}}'
                     + '{{{getCellContent(data, columns, i, j, fromRaw, toRaw)}}}'
@@ -87,9 +98,6 @@
                         classNameArr.push(columns[colIndex].className);
                     }
                     return classNameArr.join(' ');
-                },
-                test : function(){
-                    return 'abc';
                 }
             }
         });
@@ -103,6 +111,7 @@
             var rowIndex =  $td.data('row-index');
             var colIndex =  $td.data('col-index');
             this.set('data.' + rowIndex + '.' + colIndex + '.isEdit', true);
+            this.set('editing', [rowIndex, colIndex]);
             $td.find(':text').focus();
         });
 
@@ -124,6 +133,27 @@
                 param.onContentChange(rowData, this.get('data'));
             }
         });
+
+        // 修复ie，Firefox光标在输入框前面的bug
+        this.grid.observe('editing', function(newValue, oldValue, keypath){
+            var rowIndex = newValue[0];
+            var colIndex = newValue[1];
+            var $input = $('[data-row-index=' + rowIndex + '][data-col-index=' + colIndex + ']').find(':text');
+            $input.focus();
+            var input = $input[0];
+            var value = $input.val();
+            var endPlace = value.length;
+            if(input.setSelectionRange){//ie9+,firefox,chrome
+                input.setSelectionRange(endPlace, endPlace);
+            } else {
+                // setTimeout(function(){
+                    var range = input.createTextRange();
+                    range.moveEnd("character",endPlace);
+                    range.moveStart("character", endPlace);
+                // }, 100);
+            }
+        });
+
 
         if(paging){
             paging.addListener('onPageChange', function(pageAt){
