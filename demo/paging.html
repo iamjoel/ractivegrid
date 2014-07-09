@@ -4,8 +4,6 @@
 <head>
     <meta charset="UTF-8">
     <title>分页 demo</title>
-    <link rel="stylesheet" type="text/css" href="../src/ractivegrid.css">
-    <link rel="stylesheet" type="text/css" href="../src/ractivepaging.css">
 </head>
 
 <body>
@@ -20,88 +18,108 @@
 
     </div>
     <div id="paging2" style="float:right;"></div>
-    <script src="../vendor/jquery-1.10.2.js"></script>
-    <script src="../vendor/underscore-min.js"></script>
     <script src="../vendor/ractive.js"></script>
-    <script src="../src/ractivegrid.js"></script>
-    <script src="../src/ractivepaging.js"></script>
+    <script src='../vendor/requirejs.js'></script>
+    <script src="../vendor/jquery-1.10.2.js"></script>
+
+    <script>
+    require.config({
+        paths: { // 配置路径的缩写
+            'ractivegrid': '../src/ractivegrid',
+            'ractivegrid-template': '../src/ractivegrid-template.html',
+            'ractivegrid-css': '../src/ractivegrid',
+            'paging': '../vendor/paging/ractive-paging',
+            'paging-template': '../vendor/paging/paging-template.html',
+            'paging-css': '../vendor/paging/ractive-paging'
+        },
+        map: { // 配置插件
+            '*': {
+                'css': '../vendor/require-css', // 加载css插件
+                'text': '../vendor/require-text' // 加载模板文件插件
+            }
+        }
+    });
+    </script>
     <script>
     $(document).ready(function() {
-        var columns = [{
-            name: 'name', // 数据中的值
-            label: '姓名', // 列名
-            editable: true
-        }, {
-            name: 'sex',
-            label: '性别',
-            fromRaw: function(cellData, rawData) {
-                if (parseInt(cellData) === 1) {
-                    return '男';
-                } else {
-                    return '女';
-                }
-
-            }
-        }];
-
-        var paging = new Ractivepaging({
-            el: '#paging'
-        });
-
-        var url = 'data/user.json?pageAt=';
-        var userGrid = new Ractivegrid({
-            url: function(pageAt){
-                return url + pageAt;
-            },
-            columns: columns, // 列名
-            el: '#output',
-            paging: paging,
-            format: function(data) {
-                if (data.success === 1) {
-                    return data.data;
-                } else {
-                    return [];
-                }
-            },
-            success: function(data){
-                paging.setPageNum(data.pageSize);
-            }
-        });
-
-
-        var paging2 = new Ractivepaging({
-            el: '#paging2',
-            pageLimit:3 // 一页3条
-        });
-
-        var userGridSync = new Ractivegrid({
-            data: [{
-                name: 'joel1',
-                sex: 1
+        require(['ractivegrid', 'paging'], function(Ractivegrid, Ractivepaging) {
+            var columns = [{
+                name: 'name', // 数据中的值
+                label: '姓名', // 列名
+                editable: true
             }, {
-                name: 'joel2',
-                sex: 1
-            },{
-                name: 'joel3',
-                sex: 1
-            },{
-                name: 'joel4',
-                sex: 1
-            },{
-                name: 'lili5',
-                sex: 0
-            },{
-                name: 'lili6',
-                sex: 0
-            },{
-                name: 'lili7',
-                sex: 0
-            }],
-            columns: columns, // 列名
-            el: '#outputLocal',
-            paging: paging2
-        });
+                name: 'sex',
+                label: '性别',
+                fromRaw: function(cellData, rawData) {
+                    if (parseInt(cellData) === 1) {
+                        return '男';
+                    } else {
+                        return '女';
+                    }
 
+                }
+            }];
+            var paging = new Ractivepaging({
+                el: '#paging'
+            });
+
+            var url = 'data/user.json?pageAt=';
+            var userGrid = new Ractivegrid({
+                url: function(pageAt) {
+                    return url + pageAt;
+                },
+                columns: columns, // 列名
+                el: '#output',
+                paging: paging,
+                format: function(data) {
+                    if (data.success === 1) {
+                        return data.data;
+                    } else {
+                        return [];
+                    }
+                },
+                success: function(data, rawData) {
+                    paging.setPageNum(rawData.pageSize);
+                }
+            });
+
+
+            var paging2 = new Ractivepaging({
+                el: '#paging2'
+            });
+
+            var userGridSync = new Ractivegrid({
+                data: [{
+                    name: 'joel1',
+                    sex: 1
+                }, {
+                    name: 'joel2',
+                    sex: 1
+                }, {
+                    name: 'joel3',
+                    sex: 1
+                }, {
+                    name: 'joel4',
+                    sex: 1
+                }, {
+                    name: 'lili5',
+                    sex: 0
+                }, {
+                    name: 'lili6',
+                    sex: 0
+                }, {
+                    name: 'lili7',
+                    sex: 0
+                }],
+                columns: columns, // 列名
+                el: '#outputLocal',
+                paging: paging2,
+                pageParam: {
+                    pageLimit: 3
+                }
+            });
+
+        });
     });
     </script>
 </body>

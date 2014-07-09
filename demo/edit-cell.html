@@ -12,55 +12,71 @@
     <div id="output">
 
     </div>
-    <script src="../vendor/jquery-1.10.2.js"></script>
-    <script src="../vendor/underscore-min.js"></script>
     <script src="../vendor/ractive.js"></script>
-    <script src="../src/ractivegrid.js"></script>
+    <script src='../vendor/requirejs.js'></script>
+    <script src="../vendor/jquery-1.10.2.js"></script>
+
+    <script>
+    require.config({
+        paths: { // 配置路径的缩写
+            'ractivegrid': '../src/ractivegrid',
+            'ractivegrid-template': '../src/ractivegrid-template.html',
+            'ractivegrid-css': '../src/ractivegrid'
+        },
+        map: { // 配置插件
+            '*': {
+                'css': '../vendor/require-css', // 加载css插件
+                'text': '../vendor/require-text' // 加载模板文件插件
+            }
+        }
+    });
+    </script>
     <script>
     $(document).ready(function() {
-        var columns = [{
-            name: 'name', // 数据中的值
-            label: '姓名', // 列名
-            editable: true
-        }, {
-            name: 'sex',
-            label: '性别',
-            editable: true,
-            fromRaw: function(cellData, rawData) {
-                if (parseInt(cellData) === 1) {
-                    return '男';
-                } else {
-                    return '女';
-                }
+        require(['ractivegrid'], function(Ractivegrid) {
+            var columns = [{
+                name: 'name', // 数据中的值
+                label: '姓名', // 列名
+                editable: true
+            }, {
+                name: 'sex',
+                label: '性别',
+                editable: true,
+                fromRaw: function(cellData, rawData) {
+                    if (parseInt(cellData) === 1) {
+                        return '男';
+                    } else {
+                        return '女';
+                    }
 
-            },
-            toRaw: function(cellData, rawData) {
-                if (cellData === '男') {
-                    return 1;
-                } else {
-                    return 0;
-                }
+                },
+                toRaw: function(cellData, rawData) {
+                    if (cellData === '男') {
+                        return 1;
+                    } else {
+                        return 0;
+                    }
 
-            }
-        }];
-        var userGrid = new Ractivegrid({
-            url: 'data/user.json',
-            columns: columns, // 列名
-            el: '#output',
-            format: function(data) {
-                if (data.success === 1) {
-                    return data.data;
-                } else {
-                    return [];
                 }
-            },
-            onContentChange : function(rowData){
-                // 做一些提交操作
-                console.log(rowData);
+            }];
+            var userGrid = new Ractivegrid({
+                url: 'data/user.json',
+                columns: columns, // 列名
+                el: '#output',
+                format: function(data) {
+                    if (data.success === 1) {
+                        return data.data;
+                    } else {
+                        return [];
+                    }
+                },
+                onContentChange: function(cellData, rowData) {
+                    // 做一些提交操作
+                    console.log(cellData, rowData);
 
-            }
+                }
+            });
         });
-
     });
     </script>
 </body>
