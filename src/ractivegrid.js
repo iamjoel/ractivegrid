@@ -1,34 +1,19 @@
-(function(Ractive, $, _) {
-	var headTemplate =
-		'<thead><tr>'
-	    	+ '{{#columns}}'
-	    		+ '<th>{{label}}</th>'
-    		+ '{{/columns}}'
-		+ '</tr></thead>';
-	var bodyTemplate =
-		'<tbody>'
-		+ '{{#data:i}}'
-			+ '<tr>'
-			+ '{{#columns:j}}'
-                + '<td class="{{getClass(data[i][j].isEdit)}}" on-dblclick="edit" data-row-index="{{i}}"  data-col-index="{{j}}">'
-                +  '{{# data[i][j].isEdit}}'
-                    + '<input on-blur="blur" value="{{getCellContent(data, columns, i, j, fromRaw, toRaw)}}"/>'
-                +  '{{/ data[i][j].isEdit}}'
-                +  '{{^ data[i][j].isEdit}}'
-                    + '{{{getCellContent(data, columns, i, j, fromRaw, toRaw)}}}'
-                +  '{{/ data[i][j].isEdit}}'
-
-                + '</td>'
-			+ '{{/columns}}'
-    		+ '</tr>'
-		+ '{{/data}}'
-		+ '</tbody>';
-    var template =
-    	'<table class="ractivegrid table-striped table-bordered table-hover">'
-	    	+ headTemplate
-	    	+ bodyTemplate
-		+ '</table>';
+define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) {
+    // IE8/IE9要先按F12打开IE Dev Tools才能使用console，否则会报错
+    if (!window.console) {
+        var emptyFn = function() {};
+        window.console = {
+            log: emptyFn,
+            error: emptyFn,
+            warn: emptyFn,
+            info: emptyFn
+        }
+    }
     var undef = undefined;
+    var defaultPageParam = {
+        pageLimit: 10,
+        pageSizeParamName: 'pageSize'
+    }
     var Ractivegrid = function(param) {
         var validMsg = validParam(param);
         var self = this;
@@ -36,116 +21,149 @@
         if (validMsg !== true) {
             console.error(validMsg);
         }
-        var isAysn = _.isUndefined(param.url) !== true;
+
+        var isAysn = param.url !== undef;
 
         var startIndex = 0;
         var endIndex = Infinity;
 
         var paging = null;
-        if(!_.isUndefined(param.paging) && param.paging.isPaging){
+        if (param.paging !== undef && param.paging.isPaging) {
             paging = param.paging;
-            endIndex = paging.getPageLimit();
+            param.pageParam = $.extend({}, defaultPageParam, param.pageParam);
+            endIndex = param.pageParam.pageLimit;
+            if(!isAysn){
+                var allDataLen = this.getRendData(param.data, 0, Infinity, param.format).length;
+                param.paging.setPageNum(self.calPageNum(allDataLen, param.pageParam.pageLimit));// 异步的是给外部来算的
+            }
         }
 
         var renderData = isAysn ? [] : this.getRendData(param.data, startIndex, endIndex, param.format);
-
-        if(paging && !isAysn){
-            var pageNum = parseInt(param.data.length / paging.getPageLimit(), 10) + 1;
-            if(param.data.length % paging.getPageLimit() === 0){
-                pageNum -= 1;
-            }
-            paging.setPageNum(pageNum);
-        }
 
         this.grid = new Ractive({
             el: param.el,
             template: template,
             data: {
-            	data : renderData,
-            	columns : param.columns,
-                getCellContent: function(data, columns, rowIndex, colIndex, fromRaw, toRaw){
-                    var cellData = data[rowIndex][columns[colIndex].name];
+                data: renderData,
+                columns: param.columns,
+                getCellContent: function(data, columns, rowIndex, colIndex, fromRaw, toRaw) {
                     var rowData = data[rowIndex];
-                    var isEdit = (rowData && rowData[colIndex]) ?  rowData[colIndex].isEdit : false;
+                    var cellData = rowData;
+                    var nameArr = columns[colIndex].name.split('.');
+                    $.each(nameArr, function(index, each) {
+                        cellData = cellData[each];
+                    });
 
-                    if(_.isFunction(fromRaw)){
-                        cellData = fromRaw(cellData,rowData);
+                    var isEdit = (rowData && rowData[colIndex]) ? rowData[colIndex].isEdit : false;
+
+                    if (typeof fromRaw === 'function') {
+                        cellData = fromRaw(cellData, rowData);
                     }
                     return cellData;
                 },
-                getClass : function(isEdit){
-                    return isEdit ? 'editing' : '';
+                getClass: function(data, columns, rowIndex, colIndex) {
+                    var classNameArr = [];
+                    if (data[rowIndex] && data[rowIndex][colIndex] && data[rowIndex][colIndex].isEdit) {
+                        classNameArr.push('editing');
+                    }
+                    if (columns[colIndex].className) {
+                        classNameArr.push(columns[colIndex].className);
+                    }
+                    return classNameArr.join(' ');
                 }
-
             }
         });
 
-        this.grid.on('edit', function(event){
+        this.grid.on('edit', function(event) {
             var canEdit = this.get(event.keypath + '.editable');
-            if(!canEdit){
+            if (!canEdit) {
                 return;
             }
             var $td = $(event.node).closest('td');
-            var rowIndex =  $td.data('row-index');
-            var colIndex =  $td.data('col-index');
+            var rowIndex = $td.data('row-index');
+            var colIndex = $td.data('col-index');
             this.set('data.' + rowIndex + '.' + colIndex + '.isEdit', true);
+            this.set('editing', [rowIndex, colIndex]);
             $td.find(':text').focus();
         });
 
-        this.grid.on('blur', function(event){
+        this.grid.on('blur', function(event) {
             var $input = $(event.node);
             var $td = $input.closest('td');
-            var rowIndex =  $td.data('row-index');
-            var colIndex =  $td.data('col-index');
+            var rowIndex = $td.data('row-index');
+            var colIndex = $td.data('col-index');
             var columnName = this.get(event.keypath + '.name');
             var inputData = $input.val();
             var toRaw = this.get(event.keypath + '.toRaw');
             this.set('data.' + rowIndex + '.' + colIndex + '.isEdit', false);
-            if(_.isFunction(toRaw)){
+            if (typeof toRaw === 'function') {
                 inputData = toRaw(inputData);
             }
             this.set('data.' + rowIndex + '.' + columnName, inputData);
             var rowData = this.get('data.' + rowIndex);
-            if(_.isFunction(param.onContentChange)){
-                param.onContentChange(rowData, this.get('data'));
+            if (typeof param.onContentChange === 'function') {
+                param.onContentChange(inputData, rowData, this.get('data'));
             }
         });
 
-        if(paging){
-            paging.addListener('onPageChange', function(pageAt){
-                if(isAysn){
+        // 修复ie，Firefox光标在输入框前面的bug
+        this.grid.observe('editing', function(newValue, oldValue, keypath) {
+            var rowIndex = newValue[0];
+            var colIndex = newValue[1];
+            var $input = $('[data-row-index=' + rowIndex + '][data-col-index=' + colIndex + ']').find(':text');
+            $input.focus();
+            var input = $input[0];
+            var value = $input.val();
+            var endPlace = value.length;
+            if (input.setSelectionRange) { //ie9+,firefox,chrome
+                input.setSelectionRange(endPlace, endPlace);
+            } else {
+                // setTimeout(function(){
+                var range = input.createTextRange();
+                range.moveEnd("character", endPlace);
+                range.moveStart("character", endPlace);
+                // }, 100);
+            }
+        });
+
+
+        if (paging) {
+            // todo add callback
+            paging.addListener('onPageChange', function(pageAt) {
+                if (isAysn) {
                     self.fetch(pageAt);
-                } else{
-                    var pageLimit = paging.getPageLimit();
+                } else {
+                    var pageLimit = param.pageParam.pageLimit;
                     var start = (pageAt - 1) * pageLimit;
                     var end = start + pageLimit;
-                    self.grid.set('data', self.getRendData(param.data, start, end, param.format))
+                    var renderData = self.getRendData(param.data, start, end, param.format);
+                    self.grid.set('data', renderData);
                 }
             });
         }
 
-        if(isAysn){
-        	this.dfd = $.Deferred();
-        	this.fetch(1);  // 向服务器取数据
-            this.dfd.done(function(data){
-                if(_.isFunction(param.success)){
-                    param.success(data);
+        if (isAysn) {
+            this.dfd = $.Deferred();
+            this.fetch(1); // 向服务器取数据
+            this.dfd.done(function(data) {
+                if ($.isFunction(param.success)) {
+                    param.success(data.data, data.rawData);
                 }
-            })
+            });
         }
 
 
     };
 
     /*
-    * 包含 startIndx，不包含endIndex
-    */
-    Ractivegrid.prototype.getRendData = function(data, startIndex, endIndex, format){
+     * 包含 startIndx，不包含endIndex
+     */
+    Ractivegrid.prototype.getRendData = function(data, startIndex, endIndex, format) {
         var renderData = data;
-        if(!_.isUndefined(format) && _.isFunction(format)){
+        if (format !== undefined && $.isFunction(format)) {
             renderData = format(renderData);
         }
-        if(!_.isArray(renderData)){
+        if (!$.isArray(renderData)) {
             console.error('data should be array!');
             return;
         }
@@ -157,58 +175,78 @@
         var param = this.param;
         var url = param.url;
         var self = this;
-        if (_.isUndefined(url)) {
+        if (url === undefined) {
             console.warn('fetch not work for lacking url!');
             return false;
         }
-        if(_.isFunction(url)){
+        if ($.isFunction(url)) {
             url = url(pageAt);
         }
 
         $.ajax({
             url: url
-        }).done(function(data) {
-            self.dfd.resolve(_.clone(data));
-            data = self.getRendData(data, 0, Infinity, param.format);
-            if(!_.isArray(data)){
-            	console.error('data should be array!');
-            	return;
+        }).done(function(rawData) {
+            var data = self.getRendData(rawData, 0, Infinity, param.format);
+            if (!$.isArray(data)) {
+                console.error('data should be array!');
+                return;
             }
             self.grid.set('data', data);
-        }).fail(function(error){
+            self.dfd.resolve({
+                data: cloneArray(data),
+                rawData: rawData
+            });
+        }).fail(function(error) {
             self.dfd.reject();
-        	console.error('error happed: %s', error);
+            console.error('error happed: %s', error);
         });
     };
 
-	Ractivegrid.prototype.getData = function(){
-		return this.grid.get('data');
+    Ractivegrid.prototype.getData = function() {
+        return this.grid.get('data');
     };
 
-    Ractivegrid.prototype.setData = function(data){
-		this.grid.set('data', data);
+    Ractivegrid.prototype.setData = function(data) {
+        this.grid.set('data', cloneArray(data)); // 为了不影响外部的data
     };
 
-    Ractivegrid.prototype.appendData = function(appendData){
-    	var data = this.getData('data');
-    	data.push(appendData);
+    Ractivegrid.prototype.appendData = function(appendData) {
+        var data = this.getData('data');
+        data.push(appendData);
+        this.grid.set('data', data);
+    };
+
+    Ractivegrid.prototype.calPageNum = function(dataLenth, pageLimit) {
+        var pageSize = parseInt(dataLenth / pageLimit, 10) + 1;
+        if (dataLenth % pageLimit === 0) {
+            pageSize -= 1;
+        }
+        return pageSize;
     };
 
     function validParam(param) {
-        if (!_.isObject(param)) {
+        if (typeof param !== 'object') {
             return 'param should be object';
         }
-        if (_.isUndefined(param.columns) || !_.isArray(param.columns)) {
+        if (param.columns === undefined || !$.isArray(param.columns)) {
             return 'invalid columns';
         }
-        if (_.isUndefined(param.el)) {
+        if (param.el === undefined) {
             return 'invalid el'
         }
-        if (_.isUndefined(param.url) && _.isUndefined(param.data)) {
+        if (param.url === undefined && param.data === undefined) {
             return 'url or data needed';
         }
         return true;
     };
 
-    window.Ractivegrid = Ractivegrid;
-})(Ractive, jQuery, _);
+    function cloneArray(srcArr) {
+        var tarArr = [];
+        srcArr.forEach(function(each) {
+            tarArr.push(each);
+        });
+        return tarArr;
+    }
+
+    return Ractivegrid;
+});

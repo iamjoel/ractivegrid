@@ -4,56 +4,83 @@
 <head>
     <meta charset="UTF-8">
     <title>基础用法 demo</title>
-    <link rel="stylesheet" type="text/css" href="../src/ractivegrid.css">
 </head>
 
 <body>
     <div id="output">
 
     </div>
-    <script src="../vendor/jquery-1.10.2.js"></script>
-    <script src="../vendor/underscore-min.js"></script>
     <script src="../vendor/ractive.js"></script>
-    <script src="../src/ractivegrid.js"></script>
+    <script src='../vendor/requirejs.js'></script>
+    <script src="../vendor/jquery-1.10.2.js"></script>
+
+    <script>
+    require.config({
+        paths: { // 配置路径的缩写
+            'ractivegrid': '../src/ractivegrid',
+            'ractivegrid-template': '../src/ractivegrid-template.html',
+            'ractivegrid-css': '../src/ractivegrid'
+        },
+        map: { // 配置插件
+            '*': {
+                'css': '../vendor/require-css', // 加载css插件
+                'text': '../vendor/require-text' // 加载模板文件插件
+            }
+        }
+    });
+    </script>
     <script>
     $(document).ready(function() {
-        var columns = [{
-            name: 'name', // 数据中的值
-            label: '姓名' // 列名
-        }, {
-            name: 'sex',
-            label: '性别',
-            fromRaw: function(cellData, rawData) {
-                if (parseInt(cellData) === 1) {
-                    return '男';
-                } else {
-                    return '女';
-                }
-
-            }
-        }];
-        var userData = {
-            success: 1,
-            data: [{
-                name: 'joel',
-                sex: 1
+        require(['ractivegrid'], function(Ractivegrid) {
+            var columns = [{
+                name: 'name', // 数据中的值
+                label: '姓名', // 列名
+                'className': 'name-class' // 元素上加类名
             }, {
-                name: 'lili',
-                sex: 0
-            }]
-        };
-        var userGrid = new Ractivegrid({
-            data: userData,
-            columns: columns, // 列名
-            el: '#output',
-            format: function(data) {
-                if (data.success === 1) {
-                    return data.data;
-                } else {
-                    return [];
+                name: 'sex',
+                label: '性别',
+                fromRaw: function(cellData, rawData) {
+                    if (parseInt(cellData) === 1) {
+                        return '男';
+                    } else {
+                        return '女';
+                    }
                 }
-            }
+            }, {
+                name: 'other.age', // 层级 {other.age}
+                label: '年龄'
+            }];
+            var userData = {
+                success: 1,
+                data: [{
+                    name: 'joel',
+                    sex: 1,
+                    "other": {
+                        "age": 17
+                    }
+                }, {
+                    name: 'lili',
+                    sex: 0,
+                    "other": {
+                        "age": 15
+                    }
+                }]
+            };
+            var userGrid = new Ractivegrid({
+                data: userData,
+                columns: columns, // 列名
+                el: '#output',
+                format: function(data) {
+                    if (data.success === 1) {
+                        return data.data;
+                    } else {
+                        return [];
+                    }
+                }
+            });
+
         });
+
     });
     </script>
 </body>

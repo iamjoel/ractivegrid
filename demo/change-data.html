@@ -13,63 +13,84 @@
     </div>
     <button id="addData">新增用户</button>
     <button id="resetData">重置用户数据</button>
-    <script src="../vendor/jquery-1.10.2.js"></script>
-    <script src="../vendor/underscore-min.js"></script>
     <script src="../vendor/ractive.js"></script>
-    <script src="../src/ractivegrid.js"></script>
+    <script src='../vendor/requirejs.js'></script>
+    <script src="../vendor/jquery-1.10.2.js"></script>
+
     <script>
-    $(document).ready(function() {
-        var columns = [{
-            name: 'name', // 数据中的值
-            label: '姓名' // 列名
-        }, {
-            name: 'sex',
-            label: '性别',
-            fromRaw: function(cellData, rawData) {
-                if (parseInt(cellData) === 1) {
-                    return '男';
-                } else {
-                    return '女';
-                }
-
-            }
-        }];
-        var userGrid = new Ractivegrid({
-            url: 'data/user.json',
-            columns: columns, // 列名
-            el: '#output',
-            format: function(data) {
-                if (data.success === 1) {
-                    return data.data;
-                } else {
-                    return [];
-                }
-            }
-        });
-        var dfd = userGrid.dfd;
-        dfd.done(function() {
-            var oriData = _.clone(userGrid.getData());
-            $('#addData').click(function() {
-                userGrid.appendData(makeUserData());
-
-            });
-
-            $('#resetData').click(function() {
-                userGrid.setData(oriData);
-                oriData = _.clone(oriData);
-
-            });
-        });
-
-        function makeUserData() {
-            return {
-                name: 'lufe',
-                sex: 1
+    require.config({
+        paths: { // 配置路径的缩写
+            'ractivegrid': '../src/ractivegrid',
+            'ractivegrid-template': '../src/ractivegrid-template.html',
+            'ractivegrid-css': '../src/ractivegrid'
+        },
+        map: { // 配置插件
+            '*': {
+                'css': '../vendor/require-css', // 加载css插件
+                'text': '../vendor/require-text' // 加载模板文件插件
             }
         }
+    });
+    </script>
+    <script>
+    $(document).ready(function() {
+        require(['ractivegrid'], function(Ractivegrid) {
+            var columns = [{
+                name: 'name', // 数据中的值
+                label: '姓名' // 列名
+            }, {
+                name: 'sex',
+                label: '性别',
+                fromRaw: function(cellData, rawData) {
+                    if (parseInt(cellData) === 1) {
+                        return '男';
+                    } else {
+                        return '女';
+                    }
 
+                }
+            }];
+            var userGrid = new Ractivegrid({
+                url: 'data/user.json',
+                columns: columns, // 列名
+                el: '#output',
+                format: function(data) {
+                    if (data.success === 1) {
+                        return data.data;
+                    } else {
+                        return [];
+                    }
+                }
+            });
+            var dfd = userGrid.dfd;
 
+            dfd.done(function() {
+                var oriData = cloneArray(userGrid.getData());
+                $('#addData').click(function() {
+                    userGrid.appendData(makeUserData());
+                });
 
+                $('#resetData').click(function() {
+                    userGrid.setData(oriData);
+                });
+            });
+
+            function makeUserData() {
+                return {
+                    name: 'lufe',
+                    sex: 1
+                }
+            }
+
+            function cloneArray(srcArr) {
+                var tarArr = [];
+                srcArr.forEach(function(each) {
+                    tarArr.push(each);
+                });
+                return tarArr;
+            }
+
+        });
     });
     </script>
 </body>

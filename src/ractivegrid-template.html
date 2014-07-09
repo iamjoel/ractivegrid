@@ -1,0 +1,21 @@
+<table class="ractivegrid table-striped table-bordered table-hover">
+    <thead>
+        <tr>{{#columns}}
+            <th>{{label}}</th>{{/columns}}
+        </tr>
+    </thead>
+    <tbody>
+        {{#data:i}}
+        <tr>
+        {{#columns:j}}
+            <td class="{{getClass(data,columns, i, j)}}" on-dblclick="edit" data-row-index="{{i}}" data-col-index="{{j}}">
+            	{{# data[i][j].isEdit}}
+                <input on-focus="focus" on-blur="blur" value="{{getCellContent(data, columns, i, j, fromRaw, toRaw)}}" />{{/ data[i][j].isEdit}}
+                {{^ data[i][j].isEdit}}
+                {{{getCellContent(data, columns, i, j, fromRaw, toRaw)}}}
+                {{/ data[i][j].isEdit}}
+            </td>
+        {{/columns}}
+        </tr>{{/data}}
+    </tbody>
+</table>
