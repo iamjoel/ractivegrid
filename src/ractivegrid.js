@@ -184,7 +184,8 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
         }
 
         $.ajax({
-            url: url
+            url: url,
+            dataType: 'json'
         }).done(function(rawData) {
             var data = self.getRendData(rawData, 0, Infinity, param.format);
             if (!$.isArray(data)) {
