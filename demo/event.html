@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>单元格绑事件 demo</title>
+</head>
+
+<body>
+    <div id="output">
+
+    </div>
+    <script src="../vendor/ractive.js"></script>
+    <script src='../vendor/requirejs.js'></script>
+    <script src="../vendor/jquery-1.10.2.js"></script>
+
+    <script>
+    require.config({
+        paths: { // 配置路径的缩写
+            'ractivegrid': '../src/ractivegrid',
+            'ractivegrid-template': '../src/ractivegrid-template.html',
+            'ractivegrid-css': '../src/ractivegrid'
+        },
+        map: { // 配置插件
+            '*': {
+                'css': '../vendor/require-css', // 加载css插件
+                'text': '../vendor/require-text' // 加载模板文件插件
+            }
+        }
+    });
+    </script>
+    <script>
+    $(document).ready(function() {
+        require(['ractivegrid'], function(Ractivegrid) {
+            var columns = [{
+                name: 'name', // 数据中的值
+                label: '姓名', // 列名
+                'className': 'name-class', // 元素上加类名
+                event: {
+                    'click': function(event, cellData, rowData){
+                        console.log(arguments);
+                    }
+                }
+            }, {
+                name: 'other.age',
+                label: '',
+                fromRaw: function(cellData, rawData) {
+                    var $btn = $('<button>').text('获得年龄');
+                    return $('<div>').append($btn).html();
+                },
+                event: {
+                    'click button': function(event, cellData, rowData){
+                        console.log(arguments);
+                    }
+                }
+            }];
+            var userData = {
+                success: 1,
+                data: [{
+                    name: 'joel',
+                    sex: 1,
+                    "other": {
+                        "age": 17
+                    }
+                }, {
+                    name: 'lili',
+                    sex: 0,
+                    "other": {
+                        "age": 15
+                    }
+                }]
+            };
+            var userGrid = new Ractivegrid({
+                data: userData,
+                columns: columns, // 列名
+                el: '#output',
+                format: function(data) {
+                    if (data.success === 1) {
+                        return data.data;
+                    } else {
+                        return [];
+                    }
+                }
+            });
+
+        });
+
+    });
+    </script>
+</body>
+
+</html>

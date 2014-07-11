@@ -32,13 +32,14 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
             paging = param.paging;
             param.pageParam = $.extend({}, defaultPageParam, param.pageParam);
             endIndex = param.pageParam.pageLimit;
-            if(!isAysn){
+            if (!isAysn) {
                 var allDataLen = this.getRendData(param.data, 0, Infinity, param.format).length;
-                param.paging.setPageNum(self.calPageNum(allDataLen, param.pageParam.pageLimit));// 异步的是给外部来算的
+                param.paging.setPageNum(self.calPageNum(allDataLen, param.pageParam.pageLimit)); // 异步的是给外部来算的
             }
         }
 
         var renderData = isAysn ? [] : this.getRendData(param.data, startIndex, endIndex, param.format);
+
 
         this.grid = new Ractive({
             el: param.el,
@@ -80,8 +81,9 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
                 return;
             }
             var $td = $(event.node).closest('td');
-            var rowIndex = $td.data('row-index');
-            var colIndex = $td.data('col-index');
+            var cellInfo = getCellInfo(event, this);
+            var rowIndex = cellInfo.rowIndex;
+            var colIndex = cellInfo.colIndex;
             this.set('data.' + rowIndex + '.' + colIndex + '.isEdit', true);
             this.set('editing', [rowIndex, colIndex]);
             $td.find(':text').focus();
@@ -89,10 +91,10 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
 
         this.grid.on('blur', function(event) {
             var $input = $(event.node);
-            var $td = $input.closest('td');
-            var rowIndex = $td.data('row-index');
-            var colIndex = $td.data('col-index');
-            var columnName = this.get(event.keypath + '.name');
+            var cellInfo = getCellInfo(event, this);
+            var rowIndex = cellInfo.rowIndex;
+            var colIndex = cellInfo.colIndex;
+            var columnName = cellInfo.columnName;
             var inputData = $input.val();
             var toRaw = this.get(event.keypath + '.toRaw');
             this.set('data.' + rowIndex + '.' + colIndex + '.isEdit', false);
@@ -106,6 +108,8 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
             }
         });
 
+
+
         // 修复ie，Firefox光标在输入框前面的bug
         this.grid.observe('editing', function(newValue, oldValue, keypath) {
             var rowIndex = newValue[0];
@@ -118,13 +122,13 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
             if (input.setSelectionRange) { //ie9+,firefox,chrome
                 input.setSelectionRange(endPlace, endPlace);
             } else {
-                // setTimeout(function(){
                 var range = input.createTextRange();
                 range.moveEnd("character", endPlace);
                 range.moveStart("character", endPlace);
-                // }, 100);
             }
         });
+
+        this.bindCellEvent();
 
 
         if (paging) {
@@ -154,6 +158,53 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
 
 
     };
+
+
+
+    /*
+     * 给单元格绑用户自定义事件
+     */
+    Ractivegrid.prototype.bindCellEvent = function() {
+        var self = this;
+        // 暂时只支持click
+        this.grid.on('click', function(event) {
+            self.clickHandler(self, event);
+        });
+    };
+
+    Ractivegrid.prototype.clickHandler = function(ctx, event) {
+        var parma = ctx.param;
+        var cellInfo = getCellInfo(event, this.grid);
+        var columnName = cellInfo.columnName;
+        var rowIndex = cellInfo.rowIndex;
+        var colIndex = cellInfo.colIndex;
+        var eventInfo = getEventInfo(parma, colIndex, 'click');
+        var rowdata = ctx.grid.get('data.'+ rowIndex);
+        if (eventInfo) {
+            eventInfo[0].fn();// todo 判断el之类
+        }
+    };
+
+    function getEventInfo(param, colIndex, type) {
+        var columns = param.columns;
+        var cellParm = columns[colIndex];
+        var events = cellParm.event;
+        if (!events) {
+            return false;
+        }
+        var eventInfo = [];// {'click':..,'click btn':...}
+        var eventsReg = /^(click|hover)(?: (.*))?$/;
+        for (var key in events) {
+            var regRes = eventsReg.exec(key);
+            if (regRes && regRes[1] === type) {
+                eventInfo.push({
+                    el: regRes[2],
+                    fn: events[key]
+                });
+            }
+        }
+        return eventInfo;
+    }
 
     /*
      * 包含 startIndx，不包含endIndex
@@ -224,6 +275,16 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
         }
         return pageSize;
     };
+
+    function getCellInfo(event, grid) {
+        var info = {};
+        var $input = $(event.node);
+        var $td = $input.closest('td');
+        info.rowIndex = $td.data('row-index');
+        info.colIndex = $td.data('col-index');
+        info.columnName = grid.get(event.keypath + '.name');
+        return info;
+    }
 
     function validParam(param) {
         if (typeof param !== 'object') {
