@@ -130,3 +130,8 @@ table {
         border-bottom: 0;
     }
 }
+
+.ractivegrid .select-all-cell{
+  text-align: left;
+  width: 22px;
+}

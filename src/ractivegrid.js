@@ -12,7 +12,8 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
     var undef = undefined;
     var defaultPageParam = {
         pageLimit: 10,
-        pageSizeParamName: 'pageSize'
+        pageSizeParamName: 'pageSize',
+        enableSelectRow: false
     }
     var Ractivegrid = function(param) {
         var validMsg = validParam(param);
@@ -47,6 +48,7 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
             data: {
                 data: renderData,
                 columns: param.columns,
+                enableSelectRow: param.enableSelectRow,
                 getCellContent: function(data, columns, rowIndex, colIndex, fromRaw, toRaw) {
                     var rowData = data[rowIndex];
                     var cellData = rowData;
@@ -128,6 +130,17 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
             }
         });
 
+        // 全选按钮
+        this.$table = null;
+        this.grid.on('all-checked', function(event) {
+            var $checkbox = $(event.node);
+            if (!self.$table) {
+                self.$table = $checkbox.closest('table');
+            }
+            var $checkboxs = self.$table.find('tbody tr td:first-child :checkbox');
+            $checkboxs.prop('checked', $checkbox.prop('checked'));
+        });
+
         this.bindCellEvent();
 
 
@@ -179,24 +192,41 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
         var rowIndex = cellInfo.rowIndex;
         var colIndex = cellInfo.colIndex;
         var eventInfo = getEventInfo(parma, colIndex, 'click');
-        var rowdata = ctx.grid.get('data.'+ rowIndex);
-        var cellData = ctx.grid.get('data.'+ rowIndex + '.' + columnName);
+        var rowdata = ctx.grid.get('data.' + rowIndex);
+        var cellData = ctx.grid.get('data.' + rowIndex + '.' + columnName);
         var target = event.original.currentTarget;
         var $parent = $(event.node);
         if (eventInfo) {
-            eventInfo.forEach(function(each){
+            eventInfo.forEach(function(each) {
                 var canExcute = true;
-                if(each.el){// 判断点击的el，是否为目标el todo 有问题
-                    if(!$parent.find(each.el) || !$parent.find(each.el)[0] === target){
+                if (each.el) { // 判断点击的el，是否为目标el todo 有问题
+                    if (!$parent.find(each.el) || !$parent.find(each.el)[0] === target) {
                         canExcute = false;
                     }
-                } 
-                if(canExcute){
+                }
+                if (canExcute) {
                     each.fn(cellData, rowdata);
                 }
             });
         }
     };
+
+    Ractivegrid.prototype.getSelectRowsInfo = function(){
+        var self = this;
+        if(!this.$table){
+            this.$table = $(this.param.el).find('table');
+        }
+        var $SelectChecked = this.$table.find('tbody tr td:first-child :checkbox:checked');
+        var info = [];
+        $SelectChecked.each(function(){
+            var $checkbox = $(this);
+            var rowIndex = $checkbox.data('row-index');
+            info.push(self.grid.get('data.' + rowIndex));
+
+        });
+        return info;
+    }
+
 
     function getEventInfo(param, colIndex, type) {
         var columns = param.columns;
@@ -205,7 +235,7 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
         if (!events) {
             return false;
         }
-        var eventInfo = [];// {'click':..,'click btn':...}
+        var eventInfo = []; // {'click':..,'click btn':...}
         var eventsReg = /^(click|hover)(?: (.*))?$/;
         for (var key in events) {
             var regRes = eventsReg.exec(key);
