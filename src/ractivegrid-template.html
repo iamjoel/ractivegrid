@@ -1,14 +1,22 @@
 <table class="ractivegrid table-striped table-bordered table-hover">
     <thead>
-        <tr>{{#columns}}
-            <th>{{label}}</th>{{/columns}}
+        <tr>
+        {{# enableSelectRow}}
+        <th class="select-all-cell"><input type="checkbox" on-click="all-checked"/></th>
+        {{/ enableSelectRow}}
+        {{#columns}}
+            <th>{{label}}</th>
+        {{/columns}}
         </tr>
     </thead>
     <tbody>
         {{#data:i}}
         <tr>
         {{#columns:j}}
-            <td class="{{getClass(data,columns, i, j)}}" on-dblclick="edit" data-row-index="{{i}}" data-col-index="{{j}}">
+            {{# enableSelectRow}}
+            <td><input type="checkbox" data-row-index="{{i}}"/></td>
+            {{/ enableSelectRow}}
+            <td class="{{getClass(data,columns, i, j)}}" on-dblclick="edit" data-row-index="{{i}}" data-col-index="{{j}}" on-click="click">
             	{{# data[i][j].isEdit}}
                 <input on-focus="focus" on-blur="blur" value="{{getCellContent(data, columns, i, j, fromRaw, toRaw)}}" />{{/ data[i][j].isEdit}}
                 {{^ data[i][j].isEdit}}

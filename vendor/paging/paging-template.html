@@ -1,6 +1,9 @@
 {{#pageNum >= 1}}
 <ul class="ra-paging">
     <li class="{{getPrevStatus(pageAt)}}">
+        <a on-click="changePage" href="javascript:void(0);"  data-index="1">首页</a>
+    </li>
+    <li class="{{getPrevStatus(pageAt)}}">
         <a on-click="prevPage" href="javascript:void(0);">上一页</a>
     </li>
 	{{#pageArray:i}}
@@ -9,6 +12,9 @@
     {{/pageArray}}
     <li class="{{getNextStatus(pageAt, pageNum)}}">
     	<a on-click="nextPage" href="javascript:void(0);">下一页</a>
+    </li>
+    <li class="{{getNextStatus(pageAt, pageNum)}}">
+         <a on-click="changePage" href="javascript:void(0);"  data-index="{{pageNum}}">末页</a>
     </li>
 </ul>
 {{/pageNum}}
