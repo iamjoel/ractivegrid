@@ -46,11 +46,15 @@
                 label: '',
                 fromRaw: function(cellData, rawData) {
                     var $btn = $('<button>').text('获得年龄');
-                    return $('<div>').append($btn).html();
+                    var $a = $('<a>').attr('href', 'javascript:void(0)').text('haha');
+                    return $('<div>').append($btn).append($a).html();
                 },
                 event: {
                     'click button': function(event, cellData, rowData){
                         console.log(arguments);
+                    },
+                    'click a': function(event, cellData, rowData){
+                        console.log('a');
                     }
                 }
             }];

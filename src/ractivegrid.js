@@ -180,8 +180,21 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
         var colIndex = cellInfo.colIndex;
         var eventInfo = getEventInfo(parma, colIndex, 'click');
         var rowdata = ctx.grid.get('data.'+ rowIndex);
+        var cellData = ctx.grid.get('data.'+ rowIndex + '.' + columnName);
+        var target = event.original.currentTarget;
+        var $parent = $(event.node);
         if (eventInfo) {
-            eventInfo[0].fn();// todo 判断el之类
+            eventInfo.forEach(function(each){
+                var canExcute = true;
+                if(each.el){// 判断点击的el，是否为目标el todo 有问题
+                    if(!$parent.find(each.el) || !$parent.find(each.el)[0] === target){
+                        canExcute = false;
+                    }
+                } 
+                if(canExcute){
+                    each.fn(cellData, rowdata);
+                }
+            });
         }
     };
 
