@@ -51,10 +51,10 @@
                 },
                 event: {
                     'click button': function(event, cellData, rowData){
-                        console.log(arguments);
+                        console.log('button:' + rowData);
                     },
                     'click a': function(event, cellData, rowData){
-                        console.log('a');
+                        console.log('a:' + cellData);
                     }
                 }
             }];
