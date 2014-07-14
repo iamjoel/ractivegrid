@@ -194,7 +194,7 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
         var eventInfo = getEventInfo(parma, colIndex, 'click');
         var rowdata = ctx.grid.get('data.' + rowIndex);
         var cellData = ctx.grid.get('data.' + rowIndex + '.' + columnName);
-        var target = event.original.originalTarget;
+        var target = event.original.originalTarget || event.original.srcElement;// firefox chrome 元素不太一样
         var $parent = $(event.node);
         if (eventInfo) {
             eventInfo.forEach(function(each) {
