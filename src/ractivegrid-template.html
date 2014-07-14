@@ -12,10 +12,10 @@
     <tbody>
         {{#data:i}}
         <tr>
-        {{#columns:j}}
-            {{# enableSelectRow}}
+        {{# enableSelectRow}}
             <td><input type="checkbox" data-row-index="{{i}}"/></td>
             {{/ enableSelectRow}}
+        {{#columns:j}}
             <td class="{{getClass(data,columns, i, j)}}" on-dblclick="edit" data-row-index="{{i}}" data-col-index="{{j}}" on-click="click">
             	{{# data[i][j].isEdit}}
                 <input on-focus="focus" on-blur="blur" value="{{getCellContent(data, columns, i, j, fromRaw, toRaw)}}" />{{/ data[i][j].isEdit}}
