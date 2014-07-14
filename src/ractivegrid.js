@@ -194,18 +194,18 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
         var eventInfo = getEventInfo(parma, colIndex, 'click');
         var rowdata = ctx.grid.get('data.' + rowIndex);
         var cellData = ctx.grid.get('data.' + rowIndex + '.' + columnName);
-        var target = event.original.currentTarget;
+        var target = event.original.originalTarget;
         var $parent = $(event.node);
         if (eventInfo) {
             eventInfo.forEach(function(each) {
                 var canExcute = true;
                 if (each.el) { // 判断点击的el，是否为目标el todo 有问题
-                    if (!$parent.find(each.el) || !$parent.find(each.el)[0] === target) {
+                    if ($parent.find(each.el).length === 0 || $parent.find(each.el)[0] !== target) {
                         canExcute = false;
                     }
                 }
                 if (canExcute) {
-                    each.fn(cellData, rowdata);
+                    each.fn(event.original, cellData, rowdata);
                 }
             });
         }
