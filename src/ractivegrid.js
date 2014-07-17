@@ -13,7 +13,8 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
     var defaultPageParam = {
         pageLimit: 10,
         pageSizeParamName: 'pageSize',
-        enableSelectRow: false
+        enableSelectRow: false,
+        success: emptyFn
     }
     var Ractivegrid = function(param) {
         var validMsg = validParam(param);
@@ -160,13 +161,7 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
         }
 
         if (isAysn) {
-            this.dfd = $.Deferred();
             this.fetch(1); // 向服务器取数据
-            this.dfd.done(function(data) {
-                if ($.isFunction(param.success)) {
-                    param.success(data.data, data.rawData);
-                }
-            });
         }
 
 
@@ -266,6 +261,7 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
     }
 
     Ractivegrid.prototype.fetch = function(pageAt) {
+        pageAt = pageAt || 1;
         var param = this.param;
         var url = param.url;
         var self = this;
@@ -280,20 +276,17 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
         $.ajax({
             url: url,
             dataType: 'json'
-        }).done(function(rawData) {
+        }).done(function(rawData, textStatus, jqXHR) {
             var data = self.getRendData(rawData, 0, Infinity, param.format);
             if (!$.isArray(data)) {
                 console.error('data should be array!');
                 return;
             }
             self.grid.set('data', data);
-            self.dfd.resolve({
-                data: cloneArray(data),
-                rawData: rawData
-            });
-        }).fail(function(error) {
-            self.dfd.reject();
-            console.error('error happed: %s', error);
+            param.success(cloneArray(data), rawData, jqXHR);// jqXHR.getResponseHeader(key)
+        }).fail(function() {
+            param.fail(arguments);
+            console.error('error happed: %s', arguments[0]);
         });
     };
 
