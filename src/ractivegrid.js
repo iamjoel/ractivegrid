@@ -1,7 +1,7 @@
 define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) {
     // IE8/IE9要先按F12打开IE Dev Tools才能使用console，否则会报错
+    var emptyFn = function() {};
     if (!window.console) {
-        var emptyFn = function() {};
         window.console = {
             log: emptyFn,
             error: emptyFn,
@@ -15,8 +15,12 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
         pageSizeParamName: 'pageSize',
         enableSelectRow: false,
         success: emptyFn
+    };
+    var defaultParam = {
+        success: emptyFn
     }
     var Ractivegrid = function(param) {
+        param = $.extend({}, defaultParam, param);
         var validMsg = validParam(param);
         var self = this;
         this.param = param;
@@ -189,7 +193,7 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
         var eventInfo = getEventInfo(parma, colIndex, 'click');
         var rowdata = ctx.grid.get('data.' + rowIndex);
         var cellData = ctx.grid.get('data.' + rowIndex + '.' + columnName);
-        var target = event.original.originalTarget || event.original.srcElement;// firefox chrome 元素不太一样
+        var target = event.original.originalTarget || event.original.srcElement; // firefox chrome 元素不太一样
         var $parent = $(event.node);
         if (eventInfo) {
             eventInfo.forEach(function(each) {
@@ -206,14 +210,14 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
         }
     };
 
-    Ractivegrid.prototype.getSelectRowsInfo = function(){
+    Ractivegrid.prototype.getSelectRowsInfo = function() {
         var self = this;
-        if(!this.$table){
+        if (!this.$table) {
             this.$table = $(this.param.el).find('table');
         }
         var $SelectChecked = this.$table.find('tbody tr td:first-child :checkbox:checked');
         var info = [];
-        $SelectChecked.each(function(){
+        $SelectChecked.each(function() {
             var $checkbox = $(this);
             var rowIndex = $checkbox.data('row-index');
             info.push(self.grid.get('data.' + rowIndex));
@@ -283,7 +287,7 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
                 return;
             }
             self.grid.set('data', data);
-            param.success(cloneArray(data), rawData, jqXHR);// jqXHR.getResponseHeader(key)
+            param.success(cloneArray(data), rawData, jqXHR); // jqXHR.getResponseHeader(key)
         }).fail(function() {
             param.fail(arguments);
             console.error('error happed: %s', arguments[0]);
