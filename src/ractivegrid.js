@@ -17,7 +17,8 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
         success: emptyFn
     };
     var defaultParam = {
-        success: emptyFn
+        success: emptyFn,
+        fail: emptyFn
     }
     var Ractivegrid = function(param) {
         param = $.extend({}, defaultParam, param);
@@ -290,7 +291,7 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
             param.success(cloneArray(data), rawData, jqXHR); // jqXHR.getResponseHeader(key)
         }).fail(function() {
             param.fail(arguments);
-            console.error('error happed: %s', arguments[0]);
+            console.error('error happed: %s', arguments[1]);
         });
     };
 
