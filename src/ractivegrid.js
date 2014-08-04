@@ -68,6 +68,9 @@ define(['text!ractivegrid-template', 'css!ractivegrid-css'], function(template) 
                     if (typeof fromRaw === 'function') {
                         cellData = fromRaw(cellData, rowData);
                     }
+                    if(cellData == false){// 当cellData为 0, false 之类的值时，显示的内容是空字符串。。。
+                        cellData = cellData + '';
+                    }
                     return cellData;
                 },
                 getClass: function(data, columns, rowIndex, colIndex) {
